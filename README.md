@@ -1,4 +1,4 @@
-# AI4MH: AI-Powered Behavioral Analysis for Suicide Prevention
+# AI-Powered Behavioral Analysis for Suicide Prevention, Substance Use, and Mental Health Crisis Detection with Longitudinal Geospatial Crisis Trend Analysis [AI4MH (AI for Mental Health Crisis Monitoring)]
 ## Governance-Ready Crisis Signal Detection with Human-in-the-Loop Oversight
 
 **Google Summer of Code 2026 – GSoC Task Submission**  
@@ -30,7 +30,7 @@ SIGNAL DETECTION LAYER (Deliverable 1)
 ├─ BERT Binary Classifier: Detects suicidal ideation in text
 ├─ Temperature Scaling: Calibrates confidence scores
 ├─ County-Level Aggregation: Combines individual post scores
-├─ Crisis Score: Composite [0,1] with confidence gates
+└─ Crisis Score: Composite [0,1] with confidence gates
 
          ↓
 
@@ -51,14 +51,14 @@ HUMAN REVIEW LAYER (Deliverable 3)
 
 ## Key Implementation Details
 
-### Signal Detection (Deliverable 1: BERT Classification)
+### Signal Detection (Deliverable 1: BERT Classification) - [Location](deliverables/1_crisis_signal_design/)
 
 **BERT Binary Classifier**
 - Detects presence/absence of suicidal ideation in post text
 - Input: Reddit post (title + content, max 256 tokens)
 - Output: P(suicidal ideation) ∈ [0,1]
 - Model: Fine-tuned BERT-base on labeled mental health post corpus
-- Location: [deliverables/1_crisis_signal_design/](deliverables/1_crisis_signal_design/)
+
 
 **Confidence Calibration** 
 - Raw model outputs are often miscalibrated (over/underconfident)
@@ -72,7 +72,7 @@ HUMAN REVIEW LAYER (Deliverable 3)
 - Exponential moving average (α=0.2) smooths day-to-day noise
 - Sample size gates: N < 20 posts reduces confidence by 50% (rural equity)
 
-### Escalation Logic (Deliverable 2: Governance Engine)
+### Escalation Logic (Deliverable 2: Governance Engine) - [Location](deliverables/2_governance_controls)
 
 **Three-Tier System**:
 - **Tier 0 (Normal)**: Composite crisis score < 0.50 → No action
@@ -85,7 +85,7 @@ HUMAN REVIEW LAYER (Deliverable 3)
 - **Rural Equity**: Population-aware confidence thresholds prevent underrepresentation
 - **Drift Detection**: Monitors if model performance degrades over time
 
-### Governance Reflection (Deliverable 3: Responsible AI)
+### Governance Reflection (Deliverable 3: Responsible AI) - [Location](deliverables/2_governance_controls)
 
 **Primary Risk of Premature Deployment**:
 The system could become a mass surveillance tool for oppression rather than care:
