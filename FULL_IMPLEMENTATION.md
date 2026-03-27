@@ -25,6 +25,7 @@ ESCALATE: Route to human review or archive
 PERSIST: Store escalations & logs to CSV (output/evaluations/) for reproducibility
     ↓
 MONITOR: Track drift, log health metrics, alert on anomalies
+```
 
 --- 
 
