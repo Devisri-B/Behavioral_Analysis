@@ -1,139 +1,183 @@
-# 🛡️ Real-Time Geospatial Crisis Monitor (CrisisGuard)
-A real-time intelligence platform that detects, geolocates, and classifies mental health crises using social media signals and AI.
-- Live Demo: [Launch App](https://real-time-geospatial-crisis-monitor.streamlit.app)
-  
-![Overview](assets/Overview.png)
+# AI4MH: AI-Powered Behavioral Analysis for Suicide Prevention
+## Governance-Ready Crisis Signal Detection with Human-in-the-Loop Oversight
 
-## Project Overview
-Mental health crises often manifest on social media long before traditional emergency services are contacted. CrisisGuard is an end-to-end data pipeline and dashboard designed to monitor real-time discussions on Reddit, detect high-risk signals using Natural Language Processing (NLP), and visualize them on a geospatial interface to aid rapid response.
+**Google Summer of Code 2026 – GSoC Task Submission**  
+**Organization**: Institute for Social Science Research (ISSR), The University of Alabama  
+**Mentor**: David M. White, MPH, MPA
 
-Unlike standard sentiment analysis, this project utilizes a **Hybrid AI approach**, combining unsupervised clustering with supervised XGBoost classification. Data is persistently stored in **Supabase (PostgreSQL)** and updated automatically via **GitHub Actions**.
+---
+
+## Overview
+
+This system monitors aggregated public sentiment from Reddit for indicators of suicidal ideation across geographic regions. When crisis signals are detected, a multi-stage governance funnel determines whether escalation to human experts is warranted.
+
+**Three Required GSoC Deliverables**:
+
+| # | Deliverable | Purpose | 
+|---|-------------|---------|
+| **1** | **Crisis Signal Design** | BERT classification + confidence calibration + county-level crisis scoring | 
+| **2** | **Governance & Risk Controls** | Escalation logic, safeguards (bot/media/rural), audit logging | 
+| **3** | **Governance Reflection** | Primary deployment risk + critical safeguard identification | 
+
+**For detailed implementation**, see [README](FULL_IMPLEMENTATION.md)
+
+---
 
 ## System Architecture
-The system follows a strict ETL (Extract, Transform, Load) pipeline architecture, automated to run every 6 hours.
-![Architecture](assets/Architecture.png)
-
-## Key Features
-1. <u>*NLP-Based Geospatial Intelligence</u>* : Reddit posts doesn't contain precise GPS coordinates so, I engineered a custom geolocation extraction pipeline to solve this:
-	- **Entity Extraction**: Uses spaCy NLP to identify Geopolitical Entities (GPE) mentioned in user text (e.g., "I'm stuck in London").
-	- **Geocoding**: Converts extracted names into coordinates using **Geopy**.
-	- **Unmapped Fallback**: Posts with no extractable location are automatically routed to a separate "Unmapped Intel" analysis queue.
-	- **Interactive Map**: Features popups with risk levels, sample post, timestamps, and direct source links.
-
-2. <u>*Hybrid AI Risk Engine*</u> :The core of the system is a custom NLP model that classifies text into three risk levels.
-	- **Inputs**: TF-IDF vectors + **TextBlob** Sentiment Polarity.
-	- **Model**: XGBoost Classifier.
-	- **Logic**: A "Max Strategy" that weighs model probability against the raw sentiment score to minimize false negatives in critical scenarios.
-3. *Command Center & Filtering* : A centralized control panel allowing analysts to slice and dice data dynamically to find actionable insights:
-	- **Timeline Slider**: Filter incidents by specific date and time ranges to analyze trends.
-	- **Severity Filters**: Toggle between Critical, Moderate, and Low risk levels to focus purely on immediate threats.
-	- **Regional Focus**: Isolate data for specific countries or select "All Global Regions" to generate targeted local reports.
-4. <u>*Alert Dispatch System*</u>:  An integrated alerting system allowing administrators to send formatted intelligence reports via SMTP email for "Critical" level events identified in specific regions.
-5. <u>*Automated Data Pipeline*</u> : A robust ETL process that ensures real-time relevance:
-	- **Orchestration**: A **GitHub Action** workflow triggers the pipeline every 6 hours.
-	- **Extraction**: Fetches fresh posts from 20+ subreddits using the Reddit API.
-	- **Storage**: Processed data is upserted into Supabase (PostgreSQL) to prevent duplicates.
-	- **Optimization**: Automatically prunes data older than 15 days to maintain high performance and stay within Supabase free-tier storage limits.
-
-## Deep Dive: The AI Training Methodology
-One of the biggest challenges in mental health AI is the lack of labeled "Critical" vs "Moderate" data. I solved this using a Semi-Supervised workflow combining static datasets with live streaming data.
-
-1. <u>*Data Aggregation*</u>: I constructed a massive training corpus of 75,838 unique items by fusing two sources:
-	- Static Data: 53,043 labeled rows from the [Kaggle Mental Health Dataset](https://www.kaggle.com/datasets/suchintikasarkar/sentiment-analysis-for-mental-health).
-	- Live Data: 24,768 fresh posts mined from 20+ live subreddits (r/SuicideWatch, r/depression, r/ptsd) via the PRAW API.
-
-2. <u>*Semi-Supervised Auto-Labeling*</u>: To handle the unlabeled live data, I utilized an unsupervised "Teacher" model to create labels for the "Student" XGBoost model:
-
-	- Clustering: Used **K-Means** to group text into 3 distinct semantic clusters.
-	- Sentiment Mapping: Mapped clusters to risk levels based on **TextBlob polarity** averages.
-		- Cluster 0 (Low Risk): 39,840 samples
-		- Cluster 1 (Moderate Risk): 26,625 samples
-		- Cluster 2 (Critical Risk): 7,252 samples
-
-3. *Supervised Training (XGBoost)* : Finally, I trained an **XGBoost Classifier** on this auto-labeled dataset to predict risk levels on future unseen data with high efficiency.
-
-## Technical Architecture
-
-- **Frontend**: Streamlit, Folium, Plotly Express.
-- **Backend/Automation**: Python, GitHub Actions (Cron Jobs).
-- **Database**: Supabase (PostgreSQL).
-- **Machine Learning**: XGBoost, Scikit-Learn (KMeans, TF-IDF), Spacy (NER), TextBlob.
-- **Geospatial**: Geopy (Nominatim), Folium.
-
-## Application Tour & Analytics
-###  Live Data Feed
-A transparent, raw view of the incoming stream, allowing analysts to verify specific row-level data, risk drivers, and sentiment scores.
-
- ![LiveMap](assets/Livedata.png)
-### Mapped Analysis
-For incidents where a location was successfully extracted, the dashboard provides deep regional insights:
-- *Hotspot Locations & Sentiment*: Compares incident volume by country/city alongside the average sentiment polarity.
-  
-  ![Mapped_location](assets/Mapped_Loc.png)
-- *Sources & Risk Distribution*: Breaks down which subreddits are driving geospatial risk and visualizes the balance of Critical vs. Moderate threats.
-  
-  ![Mapped_Risk](assets/Mapped_risk.png)
-- *Timeline of Events*: A histogram showing the frequency of mapped crisis signals over time.
-  
-  ![Mapped_Timeline](assets/Mapped_Timeline.png)
-
-### Unmapped Intelligence
-
-A critical component for analyzing the "Silent Majority" of posts that lack geographic keywords.
-- *Sources & Risk*: Identifies which communities are most active, even without location data.
-  
-  ![Unmapped_Risk](assets/Unmapped_Risk.png)
-- *Hidden Timeline*: Tracks the volume of non-geolocated posts to spot global trends or outages.
-  
-  ![Unmapped_Timeline](assets/Unmapped_Timeline.png)
-
-## How to Run Locally
-
-1. Clone the repository
-
-	```
- 	git clone [https://github.com/Devisri-B/Real-Time-Geospatial-Crisis-Monitor.git](https://github.com/Devisri-B/Real-Time-Geospatial-Crisis-Monitor.git)
-	 cd Real-Time-Geospatial-Crisis-Monitor
-	```
-
-2. Install Dependencies
-   
-  ```
-	pip install -r requirements.txt
-	python -m spacy download en_core_web_md
-  ```
-
-3. Set up Environment Variables
-Create a .env file with your credentials:
 
 ```
-REDDIT_CLIENT_ID=your_id
-REDDIT_CLIENT_SECRET=your_secret
-DB_CONNECTION_STRING=postgresql://user:pass@supabase-url:5432/postgres
-EMAIL_SENDER=your_email
-EMAIL_PASSWORD=your_app_password
+SIGNAL DETECTION LAYER (Deliverable 1)
+├─ BERT Binary Classifier: Detects suicidal ideation in text
+├─ Temperature Scaling: Calibrates confidence scores
+├─ County-Level Aggregation: Combines individual post scores
+├─ Crisis Score: Composite [0,1] with confidence gates
+
+         ↓
+
+GOVERNANCE LAYER (Deliverable 2)
+├─ Escalation Tiers: Tier 0 (no action) → Tier 1 (monitor) → Tier 2 (crisis)
+├─ Safeguards: Bot detection, Media filtering, Rural equity checks
+├─ Drift Detection: Monitors model performance over time
+└─ Audit Trail: Logs all decisions with reasoning
+
+         ↓
+
+HUMAN REVIEW LAYER (Deliverable 3)
+├─ Analyst Queue: Lists escalations with full context
+├─ Human Override: Analyst can reject or approve system decisions
+└─ Feedback Loop: Analyst decisions feed back to model improvements
+```
+---
+
+## Key Implementation Details
+
+### Signal Detection (Deliverable 1: BERT Classification)
+
+**BERT Binary Classifier**
+- Detects presence/absence of suicidal ideation in post text
+- Input: Reddit post (title + content, max 256 tokens)
+- Output: P(suicidal ideation) ∈ [0,1]
+- Model: Fine-tuned BERT-base on labeled mental health post corpus
+- Location: [deliverables/1_crisis_signal_design/](deliverables/1_crisis_signal_design/)
+
+**Confidence Calibration** 
+- Raw model outputs are often miscalibrated (over/underconfident)
+- Temperature scaling softens probabilities to match true accuracy
+- Achieved calibration: ECE=0.4294 (15.3% improvement)
+- Optimal threshold: Youden's J = 0.7139 (from 1,597 validation samples)
+
+**County-Level Aggregation**
+- Posts geocoded by extracting location mentions (spaCy NER)
+- Scores aggregated by county over 72-hour windows
+- Exponential moving average (α=0.2) smooths day-to-day noise
+- Sample size gates: N < 20 posts reduces confidence by 50% (rural equity)
+
+### Escalation Logic (Deliverable 2: Governance Engine)
+
+**Three-Tier System**:
+- **Tier 0 (Normal)**: Composite crisis score < 0.50 → No action
+- **Tier 1 (Monitor)**: 0.50 ≤ composite score < 0.75 → Analyst queue
+- **Tier 2 (Crisis)**: Composite score ≥ 0.75 → Immediate escalation + mandatory analyst review
+
+**Safeguards**:
+- **Bot Detection**: K-S statistical test flags anomalous posting patterns
+- **Media Filtering**: Detects uniform sentiment (known news event or coordinated activity)
+- **Rural Equity**: Population-aware confidence thresholds prevent underrepresentation
+- **Drift Detection**: Monitors if model performance degrades over time
+
+### Governance Reflection (Deliverable 3: Responsible AI)
+
+**Primary Risk of Premature Deployment**:
+The system could become a mass surveillance tool for oppression rather than care:
+- False positives on crisis intervention language ("I'm struggling" vs actual ideation risk)
+- Algorithmic bias amplification against certain demographics
+- Privacy violations enabling workplace discrimination
+- Loss of human judgment and context awareness
+
+**Most Critical Safeguard: Human-in-the-Loop Review**
+- ALL Tier 2 escalations require mandatory human analyst review
+- Analyst reads full post context (not just a score)
+- Analyst can override system decision
+- Every decision logged for accountability
+- Analyst feedback drives model improvements
+
+This preserves human authority over high-stakes decisions.  
+
+## Visualizations & Analysis
+
+| Figure | Content | Insight |
+|--------|---------|---------|
+| **Fig 1: Risk Distribution** | Crisis signal distribution across counties + human review escalations | Demonstrates risk stratification and human review coverage |
+| **Fig 2: Sentiment Analysis** | Sentiment polarity histogram (suicidal vs non-suicidal) | Shows semantic signal strength for calibration |
+| **Fig 3: Confidence Metrics** | BERT confidence boxplot by classification | Validates model calibration quality (ECE=0.4294) |
+| **Fig 4: Crisis Signal Design** | Sentiment intensity histogram + governance thresholds | Illustrates core scoring mechanism and tier boundaries |
+
+**View figures**: [output/visualizations/](output/visualizations/)
+
+---
+
+## File Structure
+
+```
+|── dataset/                           (Input Reddit + Twitter datasets)
+├── deliverables/
+│   ├── 1_crisis_signal_design/        (Deliverable 1: Crisis Scoring Framework)
+│   ├── 2_governance_controls/         (Deliverables 2 & 3: Governance + Reflection)
+│   └── 3_monitoring_integration/      (ETL Pipeline & Integration)
+├── output/
+│   ├── visualizations/                (Fig 1-4 publication-quality PNG)
+│   └── evaluations/                   (CSV exports: human_review, suicidal_detection, etc.)
+├── README.md                          (This file - Overview & GSoC alignment)
+├── FULL_IMPLEMENTATION.md             (Detailed implementation details with pseudocode)
+└── requirements.txt
 ```
 
-Train the Model (Optional)
+---
+## Quick Start
 
-`python train_model_hybrid.py`
+### Installation
+```bash
+pip install -r requirements.txt
+```
 
+### Run ETL Pipeline
+```bash
+export GOVERNANCE_CONFIG=deliverables/2_governance_controls/governance_config.json
+python3 deliverables/3_monitoring_integration/etl_pipeline_new.py
+```
 
-Run the Pipeline
+### Generate Visualizations
+```bash
+python3 generate_visualizations.py
+```
 
-`python etl_pipeline.py`
+---
 
+## Key Libraries Used
 
-Launch the Dashboard
+| Library | Purpose |
+|---------|---------|
+| **torch** | Deep learning framework for BERT model inference |
+| **transformers** | HuggingFace library for fine-tuned BERT binary classifier |
+| **pandas** | Data manipulation, CSV processing, DataFrame operations |
+| **praw** | Reddit API client for fetching posts from mental health subreddits |
+| **spacy** | Named Entity Recognition (NER) for location extraction in posts |
+| **geopy** | Nominatim geocoding to convert location entities to coordinates |
+| **scikit-learn** | ML metrics (ECE, calibration), model evaluation utilities |
+| **numpy** | Numerical computing and array operations |
+| **scipy** | Statistical tests (K-S test for bot detection) |
+| **textblob** | Sentiment polarity analysis for posts |
+| **nltk** | Natural language tokenization and text processing |
+| **contractions** | Text normalization (expand contractions like "don't" → "do not") |
+| **python-dotenv** | Environment variable management (.env file support) |
+| **requests** | HTTP library for API calls (Nominatim, other services) |
+| **python-dateutil** | Date/time utilities for temporal windowing |
+| **pycountry** | Country/region code validation |
 
-`streamlit run app.py`
-
-## Contributing
-
-Contributions are welcome! Please open issues or submit pull requests to suggest improvements or new features.
-
-
-
-
-
-
+--- 
+**Author**
+- **Name**: Devi Sri Bandaru
+- **Email**: [bandarudevisri.ds@gmail.com](bandarudevisri.ds@gmail.com)
+- **LinkedIn**: [https://linkedin.com/in/devisri-bandaru](https://linkedin.com/in/devisri-bandaru)
+- **GitHub**: [https://github.com/Devisri-B](https://github.com/Devisri-B)
+- **For GSoC 2026**

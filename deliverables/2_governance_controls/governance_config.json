@@ -1,0 +1,18 @@
+{
+  "min_sample_threshold": 20,
+  "ema_alpha": 0.2,
+  "threshold_monitor": 0.5,
+  "threshold_escalate": 0.75,
+  "confidence_min": 0.6,
+  "persistence_windows": 2,
+  "optimal_threshold": 0.7138900869022269,
+  "comments": {
+    "min_sample_threshold": "Minimum posts per county per 72-hour window to compute score",
+    "ema_alpha": "Exponential moving average smoothing factor (0=no smoothing, 1=full smoothing)",
+    "threshold_monitor": "Score threshold to enter monitoring tier (0-1)",
+    "threshold_escalate": "Score threshold to escalate to human review (0-1)",
+    "confidence_min": "Minimum confidence level required to escalate (0-1)",
+    "persistence_windows": "Number of consecutive windows above escalate threshold before escalating",
+    "optimal_threshold": "BERT binary decision threshold (default 0.70). Set to Youden's J optimal value from validation: compute_youden_thresholds(val_scores, val_labels)"
+  }
+}

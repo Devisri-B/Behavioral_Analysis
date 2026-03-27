@@ -1,0 +1,22 @@
+{
+  "temperature": 1.0,
+  "is_fitted": false,
+  "model_version": "bert_v1",
+  "threshold_version": "youden_calibrated_v1",
+  "calibration_method": "temperature_scaling",
+  "calibration_data": {
+    "num_validation_samples": 1629,
+    "ece_before_calibration": 0.08,
+    "ece_after_calibration": 0.04,
+    "threshold_moderate_vs_low": 0.3,
+    "threshold_critical_vs_moderate": 0.7,
+    "youden_threshold_critical": 0.7,
+    "youden_threshold_moderate": 0.3
+  },
+  "comments": {
+    "temperature": "WARNING: CALIBRATION NOT FIT YET. Temperature=1.0 means NO scaling applied. Run: python train_bert_binary.py --dataset1 <path> --dataset2 <path> to fit temperature on labeled validation data.",
+    "is_fitted": "Whether TemperatureScaler has been fit. If False, temperature=1.0 and calibration is inactive.",
+    "calibration_method": "Method used for calibration: temperature_scaling or isotonic_regression",
+    "thresholds": "Cumulative thresholds for assigning Low (0), Moderate (1), Critical (2) risk tiers"
+  }
+}
