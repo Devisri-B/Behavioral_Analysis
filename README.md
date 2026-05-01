@@ -1,11 +1,4 @@
-# AI-Powered Behavioral Analysis for Suicide Prevention, Substance Use, and Mental Health Crisis Detection with Longitudinal Geospatial Crisis Trend Analysis [AI4MH (AI for Mental Health Crisis Monitoring)]
-## Governance-Ready Crisis Signal Detection with Human-in-the-Loop Oversight
-
-**Google Summer of Code 2026 – GSoC Task Submission**  
-**Organization**: Institute for Social Science Research (ISSR), The University of Alabama  
-**Mentor**: David M. White, MPH, MPA
-
----
+# AI-Powered Behavioral Analysis for Suicide Prevention
 
 ## Overview
 
@@ -173,11 +166,3 @@ python3 generate_visualizations.py
 | **requests** | HTTP library for API calls (Nominatim, other services) |
 | **python-dateutil** | Date/time utilities for temporal windowing |
 | **pycountry** | Country/region code validation |
-
---- 
-**Author**
-- **Name**: Devi Sri Bandaru
-- **Email**: [bandarudevisri.ds@gmail.com](bandarudevisri.ds@gmail.com)
-- **LinkedIn**: [https://linkedin.com/in/devisri-bandaru](https://linkedin.com/in/devisri-bandaru)
-- **GitHub**: [https://github.com/Devisri-B](https://github.com/Devisri-B)
-- **For GSoC 2026**
